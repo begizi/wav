@@ -13,7 +13,7 @@ type Reader struct {
 	size  int64
 
 	header   *riffHeader
-	chunkFmt *riffChunkFmt
+	ChunkFmt *riffChunkFmt
 
 	canonical      bool
 	extraChunk     bool
@@ -32,10 +32,10 @@ func (wav Reader) String() string {
 	msg += fmt.Sprintf("File size         : %d bytes\n", wav.size)
 	msg += fmt.Sprintf("Canonical format  : %v\n", wav.canonical && !wav.extraChunk)
 	// chunk fmt
-	msg += fmt.Sprintf("Audio format      : %d\n", wav.chunkFmt.AudioFormat)
-	msg += fmt.Sprintf("Number of channels: %d\n", wav.chunkFmt.NumChannels)
-	msg += fmt.Sprintf("Sampling rate     : %d Hz\n", wav.chunkFmt.SampleRate)
-	msg += fmt.Sprintf("Sample size       : %d bits\n", wav.chunkFmt.BitsPerSample)
+	msg += fmt.Sprintf("Audio format      : %d\n", wav.ChunkFmt.AudioFormat)
+	msg += fmt.Sprintf("Number of channels: %d\n", wav.ChunkFmt.NumChannels)
+	msg += fmt.Sprintf("Sampling rate     : %d Hz\n", wav.ChunkFmt.SampleRate)
+	msg += fmt.Sprintf("Sample size       : %d bits\n", wav.ChunkFmt.BitsPerSample)
 	// calculated
 	msg += fmt.Sprintf("Number of samples : %d\n", wav.numSamples)
 	msg += fmt.Sprintf("Sound size        : %d bytes\n", wav.dataBlocSize)
@@ -130,27 +130,27 @@ readLoop:
 		}
 	}
 
-	if wav.chunkFmt == nil {
+	if wav.ChunkFmt == nil {
 		return ErrBrokenChunkFmt
 	}
 
-	wav.bytesPerSample = uint32(wav.chunkFmt.BitsPerSample / 8)
+	wav.bytesPerSample = uint32(wav.ChunkFmt.BitsPerSample / 8)
 
 	if wav.bytesPerSample == 0 {
 		return ErrNoBitsPerSample
 	}
 
 	wav.numSamples = wav.dataBlocSize / wav.bytesPerSample
-	wav.duration = time.Duration(float64(wav.numSamples)/float64(wav.chunkFmt.SampleRate)) * time.Second
+	wav.duration = time.Duration(float64(wav.numSamples)/float64(wav.ChunkFmt.SampleRate)) * time.Second
 
 	return nil
 }
 
 // parseChunkFmt
 func (wav *Reader) parseChunkFmt() (err error) {
-	wav.chunkFmt = new(riffChunkFmt)
+	wav.ChunkFmt = new(riffChunkFmt)
 
-	if err = binary.Read(wav.input, binary.LittleEndian, wav.chunkFmt); err != nil {
+	if err = binary.Read(wav.input, binary.LittleEndian, wav.ChunkFmt); err != nil {
 		return err
 	}
 
@@ -167,7 +167,7 @@ func (wav *Reader) parseChunkFmt() (err error) {
 	}
 
 	// Is audio supported ?
-	if wav.chunkFmt.AudioFormat != 1 {
+	if wav.ChunkFmt.AudioFormat != 1 {
 		return ErrFormatNotSupported
 	}
 
@@ -180,9 +180,9 @@ func (wav *Reader) GetSampleCount() uint32 {
 
 func (w Reader) GetFile() File {
 	return File{
-		SampleRate:      w.chunkFmt.SampleRate,
-		Channels:        w.chunkFmt.NumChannels,
-		SignificantBits: w.chunkFmt.BitsPerSample,
+		SampleRate:      w.ChunkFmt.SampleRate,
+		Channels:        w.ChunkFmt.NumChannels,
+		SignificantBits: w.ChunkFmt.BitsPerSample,
 	}
 }
 
